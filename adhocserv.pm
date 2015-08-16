@@ -85,10 +85,10 @@ sub auth
   return accessLevel('normal');
 }
 
-#BobboBot::command::add('adhocserv', 'run', \&BobboBot::adhocserv::run);
-#BobboBot::command::add('adhocserv', 'help', \&BobboBot::adhocserv::help);
-#BobboBot::command::add('adhocserv', 'auth', \&BobboBot::adhocserv::auth);
-BobboBot::command::addEvent(\&BobboBot::adhocserv::readPipe);
+#BobboBot::module::add('adhocserv', 'run', \&BobboBot::adhocserv::run);
+#BobboBot::module::add('adhocserv', 'help', \&BobboBot::adhocserv::help);
+#BobboBot::module::add('adhocserv', 'auth', \&BobboBot::adhocserv::auth);
+BobboBot::module::addEvent(\&BobboBot::adhocserv::readPipe);
 
 
 1;
