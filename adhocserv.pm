@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-package BobboBot:adhocserv;
+package BobboBot::adhocserv;
 
 use warnings;
 use strict;
@@ -19,10 +19,18 @@ my $lookup = {
 };
 
 my $path = "../AdhocServerPro/pipe";
-my $rfd = '';
+my $pd;
 
-mkfifo($path, 0666);
-sysopen(my $pd, $path, O_NONBLOCK|O_RDONLY) or die "Can't open pipe: $!\n";
+sub openPipe
+{
+  mkfifo($path, 0666);
+  sysopen($pd, $path, O_NONBLOCK|O_RDONLY) or die __FILE__ . ':' . __LINE__ . " Can't open pipe: $!\n";
+}
+
+sub closePipe
+{
+  close($pd);
+}
 
 sub readPipe
 {
@@ -59,14 +67,14 @@ sub readPipe
             my $action = shift(@toks) eq 'JOIN' ? 'joined' : 'left';
             my $game = shift(@toks);
             $game = $lookup->{$game} || $game;
-            my $room = substr(shift(@toks), -3) + 1;
+            my $roomID = shift(@toks);
+            my $room = substr($roomID, -3) + 1;
             $main::irc->yield('privmsg', $channel, '[Ad-Hoc Server] ' . $who . ' ' . $action . ' room ' . $room . ' (' . $game . ')');
           }
         }
       }
     }
   }
-#  close($pd);
 }
 
 sub run
@@ -85,10 +93,13 @@ sub auth
   return accessLevel('normal');
 }
 
-#BobboBot::module::add('adhocserv', 'run', \&BobboBot::adhocserv::run);
-#BobboBot::module::add('adhocserv', 'help', \&BobboBot::adhocserv::help);
-#BobboBot::module::add('adhocserv', 'auth', \&BobboBot::adhocserv::auth);
-BobboBot::module::addEvent(\&BobboBot::adhocserv::readPipe);
+#BobboBot::module::addCommand('adhocserv', 'run', \&BobboBot::adhocserv::run);
+#BobboBot::module::addCommand('adhocserv', 'help', \&BobboBot::adhocserv::help);
+#BobboBot::module::addCommand('adhocserv', 'auth', \&BobboBot::adhocserv::auth);
+BobboBot::module::addEvent('LOAD',    \&BobboBot::adhocserv::openPipe);
+BobboBot::module::addEvent('STOP',    \&BobboBot::adhocserv::closePipe);
+BobboBot::module::addEvent('RESTART', \&BobboBot::adhocserv::closePipe);
 
+BobboBot::module::addEvent('AUTO', \&BobboBot::adhocserv::readPipe, 1);
 
 1;
